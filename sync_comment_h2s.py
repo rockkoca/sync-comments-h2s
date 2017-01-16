@@ -358,7 +358,8 @@ class Sh2s(object):
                 maintain_func_scope(line)
             # insert the comments for each function
             if not is_in_function and function_lines:
-                # print(line)
+
+                # remove extra empty lines for the source code
                 while updated_source_lines and not updated_source_lines[-1].strip():
                     updated_source_lines.pop()
 
