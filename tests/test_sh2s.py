@@ -100,8 +100,8 @@ class TestSh2s(TestCase):
 
     def test_read_source_and_header(self):
         # /home/k/Dropbox/Clion/css342/as5-p/Test
-        d = sh2s.read_header('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree')
-        names = sh2s.write_source_file('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree1.cpp')
+        d = sh2s.read_header('/home/k/Documents/WordTree')
+        names = sh2s.write_source_file('/home/k/Documents/WordTree.cpp', d)
         # d = sh2s.read_header('/home/k/Dropbox/Clion/css342/as5-p/Test')
         for name in names:
             self.assertTrue(name in d)

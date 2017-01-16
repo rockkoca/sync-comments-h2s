@@ -1,0 +1,3 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+sudo ln -s $DIR/sync_comment_h2s.py /usr/bin/sh2s

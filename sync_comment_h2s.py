@@ -1,6 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import os
+import sys
 import re
 import collections
+from subprocess import *
 
 '''
 This program assumes the code is well formatted by IDE
@@ -19,12 +23,17 @@ class Sh2s(object):
     _source_name = 'source_name'
     _match_function = re.compile(r'^\s*\t*~?\w+:{0,2}\w*\s*.*\(.+\)?')
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, header_extension: str = '.h',
+                 source_extension: str = '.cpp',
+                 comment_indent: int = 0):
         if not os.path.isdir(path):
             raise Exception('The path is not a dir!')
         os.chdir(path)
         self.file_names = []
         self.path = path
+        self.header_extension = header_extension
+        self.source_extension = source_extension
+        self.comment_indent = comment_indent
 
     def read_header(self, file_name: str) -> {str: [str]}:
         """
@@ -33,8 +42,9 @@ class Sh2s(object):
         """
         comments = {}
         comment = []  # hold single comment block
-        comments[self._source_name] = file_name + '.cpp'
-        file_name += '.h'
+        comments[self._source_name] = file_name + self.source_extension
+        file_name += self.header_extension \
+            if not file_name.endswith(self.header_extension) else ''
         class_levels = collections.deque([])
         lines = []
         inside_block_comment = False
@@ -76,15 +86,18 @@ class Sh2s(object):
                 comment.clear()
             elif temp_line.startswith('/*'):
                 inside_block_comment = True
-                comment.append(line)
+                # comment.append(line.lstrip())
+                self.append_block_comment(comment, line, body=False)
             elif temp_line.endswith('*/'):
                 inside_block_comment = False
-                comment.append(line)
+                # comment.append(' ' + line.lstrip())
+                self.append_block_comment(comment, line)
             elif temp_line.startswith('//'):
                 # line comment??
                 # TODO thinking about this case
                 # print(line)
-                comment.append(line)
+                # comment.append(line.lstrip())
+                self.append_block_comment(comment, line)
             else:
                 # skip include and define etc
                 if temp_line.startswith('#'):
@@ -136,11 +149,27 @@ class Sh2s(object):
                     '''end of the class'''
                     class_levels.pop()
                 elif inside_block_comment:
-                    comment.append(line)
+                    # comment.append(line)
+                    # comment.append(' ' + line.lstrip())
+                    self.append_block_comment(comment, line)
                 else:
                     continue
                     # print(line, '##################no match')
         return comments
+
+    def append_block_comment(self, comment: [str], line: str, body: bool = True) -> None:
+        indent = ' ' * self.comment_indent
+        line = line.lstrip()
+
+        if body:
+            if line.startswith('//'):
+                comment.append(indent + line)
+            elif line.startswith('*'):
+                comment.append(indent + ' ' + line)
+            else:
+                comment.append(indent + '  ' + line)
+        else:
+            comment.append(indent + line)
 
     @staticmethod
     def extract_class_name(line: str) -> [str]:
@@ -248,12 +277,13 @@ class Sh2s(object):
         #     line = line.replace("  ", ' ')
         return re.sub(r'\s+', ' ', line)
 
-    def write_source_file(self, file_name: str) -> [str]:
+    def write_source_file(self, file_name: str, comments: {str: [str]}) -> [str]:
+        print(file_name, os.getcwd())
         is_in_function = []
-        d = self.read_header('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree')
+        # comments = self.read_header('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree')
 
         # todo debug only
-        print(d)
+        # print(comments)
         lines = []
         with open(file_name, 'r') as file:
             lines = file.readlines()
@@ -272,9 +302,10 @@ class Sh2s(object):
                     is_in_function.pop()
                     # print('after', is_in_function)
 
-        updated_source_lines = d.get(self._file_comment_key, [])
+        updated_source_lines = comments.get(self._file_comment_key, [])
         function_lines = []
         func_names = []
+        inside_comment_block = False
         while i < len(lines):
             line = lines[i]
             i += 1
@@ -303,27 +334,91 @@ class Sh2s(object):
                     #     print('*' * 100)
                     #     print(func)
                 maintain_func_scope(line)
-                # print()
-                # print(function)
-
 
             else:
+
                 if is_in_function:
                     function_lines.append(line)
-                maintain_func_scope(line)
-                # finish a function
-            if not is_in_function and function_lines:
-                updated_source_lines += ['\n'] + d.get(func_names[-1], []) + function_lines
+                    maintain_func_scope(line)
+                else:
+                    # excluding outside comments
+                    if re.match(r'^\s*/\*', line.lstrip()):
+                        inside_comment_block = True
+                    elif re.match(r'\*/\s*', line.rstrip()):
+                        inside_comment_block = False
+                    else:
+                        if not inside_comment_block and \
+                                re.match(r'^\s*[^//].*?', line):
+                            function_lines.append(line)
+
+            # insert the comments for each function
+            if not is_in_function and func_names:
+                updated_source_lines += ['\n'] + comments.get(func_names[-1], []) \
+                                        + function_lines
                 function_lines.clear()
                 # print(function)
 
         # print(func_names, '*' * 100)
         print()
         for func in func_names:
-            if func not in d:
+            if func not in comments:
                 print(func, ' not fund')
 
-        with open('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree1.cpp', 'w') as file:
+        with open(file_name, 'w') as file:
             file.writelines(updated_source_lines)
 
         return func_names
+
+    def header_to_source_name(self, header_file: str) -> str:
+        return header_file.replace(self.header_extension, '') + \
+               self.source_extension
+
+    def back_up_source_file(self, file_name: str) -> bool:
+        os.chdir(self.path)
+        back_up_folder = '.sh2s_back_up'
+        if not os.path.exists(back_up_folder):
+            # let it raise Exceptions
+            try:
+                check_output('mkdir {}'.format(back_up_folder), shell=True)
+            except PermissionError:
+                print('Permission error! Cannot create backup folder.')
+                return False
+            except Exception as e:
+                raise Exception('Unknown error! Cannot create backup folder.')
+        try:
+            check_output('cp {} {}/{}'
+                         .format(file_name, back_up_folder, file_name + '.bak'), shell=True)
+        except Exception as e:
+            raise Exception('Error! Cannot create backup of {}'.format(file_name))
+
+        return True
+
+    def run(self):
+        self.file_names = os.listdir('.')
+        # print(self.file_names)
+
+        file_names = [
+            file for file in self.file_names if
+            re.match(r'^[^.].*?\.(cpp|h)$', file)
+            ]
+        # print(file_names)
+        for file in self.file_names:
+
+            if file.endswith(self.header_extension):
+
+                source_file = self.header_to_source_name(file)
+                if source_file in file_names:
+                    # if both header file and source file are in this dir
+                    self.back_up_source_file(source_file)
+                    comments = self.read_header(file)
+                    self.write_source_file(source_file, comments)
+                else:
+                    print(source_file, 'does not exist!')
+
+        print('Success')
+
+
+if __name__ == '__main__':
+    print(sys.argv)
+    sh2s = Sh2s(path=os.getcwd())
+    sh2s.run()
