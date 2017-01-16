@@ -37,6 +37,10 @@ class TestSh2s(TestCase):
         self.assertEqual(Sh2s.unify_function_name(test1),
                          Sh2s.unify_function_name(test2))
 
+        result = 'void Test_sh2s::doSomething1Helpers(Test_sh2s::Node *)'
+        test = 'void Test_sh2s::doSomething1Helpers(Test_sh2s::Node *head)'
+        self.assertEqual(result, Sh2s.unify_function_name(test))
+
     def test_format_asterisk_ampersand(self):
         result = 'int getHelper(const string &, const WordNode *&);'
         test = 'int getHelper(const string&, const WordNode*&)       ;'
@@ -99,9 +103,16 @@ class TestSh2s(TestCase):
             self.assertFalse(re.match(match_function, test))
 
     def test_read_source_and_header(self):
-        # /home/k/Dropbox/Clion/css342/as5-p/Test
-        d = sh2s.read_header('/home/k/Documents/WordTree')
-        names = sh2s.write_source_file('/home/k/Documents/WordTree.cpp', d)
-        # d = sh2s.read_header('/home/k/Dropbox/Clion/css342/as5-p/Test')
+        my_path = "/".join(os.path.realpath(__file__).split('/')[:-1])
+        os.chdir(my_path)
+        d = sh2s.read_header('test_sh2s.h')
+        names = sh2s.write_source_file('test_sh2s.cpp', d)
+        for k, v in d.items():
+            print(k, v)
         for name in names:
             self.assertTrue(name in d)
+
+        output = open('test_sh2s.cpp', 'r')
+        correct_output = open('test_sh2s_correct.cpp', 'r')
+        for l1, l2 in zip(output, correct_output):
+            self.assertEqual(l1, l2)

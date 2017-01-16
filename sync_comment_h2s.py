@@ -221,7 +221,7 @@ class Sh2s(object):
             p2 = p2.strip()
 
             # print(p2, part2s, line)
-            while p2[-1].isalpha() or p2[-1] == '_':
+            while p2[-1].isalnum() or p2[-1] == '_':
                 p2 = p2[:-1]
             if '=' in p2:
                 p2 = re.sub(r'\s*\w+_?\w*\s*=\s*.+$', '', p2)
@@ -339,22 +339,30 @@ class Sh2s(object):
 
                 if is_in_function:
                     function_lines.append(line)
-                    maintain_func_scope(line)
+
                 else:
+                    # print(line)
                     # excluding outside comments
-                    if re.match(r'^\s*/\*', line.lstrip()):
+                    if re.search(r'^\s*/\*', line.lstrip()):
                         inside_comment_block = True
-                    elif re.match(r'\*/\s*', line.rstrip()):
+                    elif re.search(r'\*/\s*', line.rstrip()):
                         inside_comment_block = False
                     else:
-                        if not inside_comment_block and \
-                                re.match(r'^\s*[^//].*?', line):
-                            function_lines.append(line)
 
+                        # if is not comments, collect it
+                        if not inside_comment_block and \
+                                re.match(r'^\s*[^/{2}].*?', line):
+                            # print(line)
+                            updated_source_lines.append(line)
+                    # print(inside_comment_block)
+                maintain_func_scope(line)
             # insert the comments for each function
-            if not is_in_function and func_names:
-                updated_source_lines += ['\n'] + comments.get(func_names[-1], []) \
-                                        + function_lines
+            if not is_in_function and function_lines:
+                # print(line)
+                while updated_source_lines and not updated_source_lines[-1].strip():
+                    updated_source_lines.pop()
+
+                updated_source_lines += ['\n'] + comments.get(func_names[-1], []) + function_lines
                 function_lines.clear()
                 # print(function)
 
@@ -384,11 +392,13 @@ class Sh2s(object):
                 print('Permission error! Cannot create backup folder.')
                 return False
             except Exception as e:
+                print(e)
                 raise Exception('Unknown error! Cannot create backup folder.')
         try:
             check_output('cp {} {}/{}'
                          .format(file_name, back_up_folder, file_name + '.bak'), shell=True)
         except Exception as e:
+            print(e)
             raise Exception('Error! Cannot create backup of {}'.format(file_name))
 
         return True
