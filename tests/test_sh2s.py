@@ -18,33 +18,49 @@ class TestSh2s(TestCase):
         self.assertEqual(result, Sh2s.unify_function_name(test))
 
         result = 'WordTree::WordNode *AddHelper(const string, WordNode *)'
-        test = 'WordTree::WordNode *AddHelper(const string word, WordNode *)'
+        test = 'WordTree    ::    WordNode *AddHelper(const string word, WordNode *)'
         self.assertEqual(result, Sh2s.unify_function_name(test))
 
         result = 'int getHelper(const string, const WordNode *) const'
-        test = 'int getHelper(const string word, const WordNode *curr) const;'
+        test = '       int            getHelper(         const    ' \
+               'string word, const WordNode *curr)                 const;'
         self.assertEqual(result, Sh2s.unify_function_name(test))
 
+        result = 'WordTree &WordTree::operator=(const WordTree &)'
+        test = 'WordTree &WordTree::operator     =     (const WordTree         &      right)'
+        self.assertEqual(result, Sh2s.unify_function_name(test))
+
+        test1 = 'WordNode(const string word, WordTree::WordNode *left,' \
+                'WordTree::WordNode *right, const int count) {'
+        test2 = 'WordNode(const string word, WordTree::WordNode *left = nullptr,' \
+                'WordTree::WordNode *right = nullptr, const int count = 1)'
+        self.assertEqual(Sh2s.unify_function_name(test1),
+                         Sh2s.unify_function_name(test2))
+
     def test_format_asterisk_ampersand(self):
-        result = 'int getHelper(const string &, const WordNode *&) const'
-        test = 'int getHelper(const string&, const WordNode*&) const'
-        self.assertEqual(result, Sh2s.format_asterisk_ampersand(test))
+        result = 'int getHelper(const string &, const WordNode *&);'
+        test = 'int getHelper(const string&, const WordNode*&)       ;'
+        self.assertEqual(result, Sh2s.format_asterisk_ampersand_comma_parentheses(test))
 
         result = 'int getHelper(const string *, const WordNode *&) const'
         test = 'int getHelper(const string*, const WordNode*&) const'
-        self.assertEqual(result, Sh2s.format_asterisk_ampersand(test))
+        self.assertEqual(result, Sh2s.format_asterisk_ampersand_comma_parentheses(test))
 
         result = 'int getHelper(const string **, const WordNode *&) const'
-        test = 'int getHelper(const string**, const WordNode*&) const'
-        self.assertEqual(result, Sh2s.format_asterisk_ampersand(test))
+        test = 'int getHelper  (    const string*      *, const WordNode*         &   )    const'
+        self.assertEqual(result, Sh2s.format_asterisk_ampersand_comma_parentheses(test))
 
     def test_extract_class_name(self):
-        result = 'WordNode'
+        result = ['WordNode']
         test = 'struct WordNode {'
         self.assertEqual(result, Sh2s.extract_class_name(test))
 
-        result = 'WordNode'
-        test = 'class WordNode '
+        result = ['Node', 'WordNode']
+        test = 'class WordNode : public Node {'
+        self.assertEqual(result, Sh2s.extract_class_name(test))
+
+        result = ['SuperSuper', 'Super', 'WordNode']
+        test = 'class WordNode : private Super : public SuperSuper {}'
         self.assertEqual(result, Sh2s.extract_class_name(test))
 
     def test_match_function_line(self):
@@ -82,22 +98,10 @@ class TestSh2s(TestCase):
         for test in tests:
             self.assertFalse(re.match(match_function, test))
 
-    def test_read_header(self):
+    def test_read_source_and_header(self):
         # /home/k/Dropbox/Clion/css342/as5-p/Test
         d = sh2s.read_header('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree')
+        names = sh2s.write_source_file('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree1.cpp')
         # d = sh2s.read_header('/home/k/Dropbox/Clion/css342/as5-p/Test')
-        # for k, v in d.items():
-        #     print(k, v)
-        # self.fail()
-        self.assertTrue(1)
-        pass
-
-    def test_read_source(self):
-        # /home/k/Dropbox/Clion/css342/as5-p/Test
-        d = sh2s.read_header('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree')
-        sh2s.read_source_file('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree.cpp')
-        # d = sh2s.read_header('/home/k/Dropbox/Clion/css342/as5-p/Test')
-
-        self.fail()
-        # self.assertTrue(1)
-        pass
+        for name in names:
+            self.assertTrue(name in d)
