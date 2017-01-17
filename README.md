@@ -60,6 +60,7 @@ The following arguments will only update the file comments without modifing any 
 #Limitation
 * Does not support template yet.
 * No much tests have been done for C.
+* Nested struct and class are expected a full name(class::nested_class) when it is used in .h file.
 
 
 
