@@ -52,10 +52,9 @@ The following arguments will only update the file comments without modifing any 
      * @date 2017.01.01
      */
 
-
-
-
-
+#Limitation
+Does not support template yet.
+No much tests have been done for C.
 
 
 
