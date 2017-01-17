@@ -1,5 +1,5 @@
 /**
- * ＠file test_sh2s.h
+ * @file test_sh2s.h
  * @version 1.0
  *
  * This is a test file.
@@ -101,5 +101,10 @@ private:
 
 };
 
+/**
+ * test_c_func
+ * Test c function
+ */
+void test_c_func(int test);
 
 #endif //TEST_SH2S_H
