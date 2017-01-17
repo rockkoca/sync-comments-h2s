@@ -10,18 +10,27 @@
 
 #How to Use
 Download and unzip the files.
-cd sync-comments-h2s-master
-sudo ./sh2s
+
+    cd sync-comments-h2s-master
+    sudo ./sh2s
 
 If you do not see any error, you are done.
 
 ###Now, go to the folder that contains your .h/.cpp files and run "sh2s".
 ##Example
-sh2s
-OR
-sh2s -extension hh|cc
-OR
-sh2s -fc-only author|Bill
+
+Sync comments from .h to .cpp
+
+    sh2s
+OR  Sync comments from .hh to .cc
+
+    sh2s -extension hh|cc
+OR  Sync comments from .h to .cpp and update file comments.
+
+    sh2s -fc author|Bill
+OR  Update file comments only.
+
+    sh2s -fc-only author|Bill
 
 
 #Options
@@ -36,7 +45,7 @@ Use the following command to add extra comments
 The following arguments will only update the file comments without modifing any other comments in any file.
 -fc-only author:Bill|date:2017.01.01
 
-###Example result
+###Example result for update file comments
     /**
      * @file test_sh2s.cpp
      * @author Bill
