@@ -1,5 +1,5 @@
 /**
- * ＠file test_sh2s.h
+ * @file test_sh2s.h
  * @version 1.0
  *
  * This is a test file.
@@ -99,5 +99,13 @@ void Test_sh2s::doSomething1Helpers(Test_sh2s::Node *head) {
 
 // constructor of Node
 Test_sh2s::Node::Node(int val, Test_sh2s::Node *left, Test_sh2s::Node *right) {
+
+}
+
+/**
+ * test_c_func
+ * Test c function
+ */
+void test_c_func(int test){
 
 }

@@ -34,11 +34,15 @@ class Sh2s(object):
         self.header_extension = header_extension
         self.source_extension = source_extension
         self.comment_indent = comment_indent
+        self.file_comments = {}
+        self.only_update_file_comments = False
 
     def read_header(self, file_name: str) -> {str: [str]}:
         """
-
-        :param file_name:
+        read comments from header file.
+            The comments will be put in a dictionary with func name as the key
+            and comments as the value
+        :param file_name: the file name of a header file
         """
         comments = {}
         comment = []  # hold single comment block
@@ -278,6 +282,12 @@ class Sh2s(object):
         return re.sub(r'\s+', ' ', line)
 
     def write_source_file(self, file_name: str, comments: {str: [str]}) -> [str]:
+        """
+        Write the comments to a source file.
+        :param file_name: the file name of a source file
+        :param comments: the list of comments
+        :return: [function names]
+        """
         print(file_name, os.getcwd())
         is_in_function = []
         # comments = self.read_header('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree')
@@ -310,11 +320,8 @@ class Sh2s(object):
             line = lines[i]
             i += 1
 
-            # print(line)
-
+            # match function name line
             if re.search(self._match_function, line):
-
-                # print(line)
 
                 function_lines.append(line)
                 if not is_in_function:
@@ -326,22 +333,15 @@ class Sh2s(object):
                         function_lines.append(lines[i])
                         i += 1
                     func = self.unify_function_name(line)
-
-                    # print(func)
-
                     func_names.append(func)
-                    # if func in d:
-                    #     print('*' * 100)
-                    #     print(func)
+
                 maintain_func_scope(line)
-
             else:
-
                 if is_in_function:
                     function_lines.append(line)
 
                 else:
-                    # print(line)
+
                     # excluding outside comments
                     if re.search(r'^\s*/\*', line.lstrip()):
                         inside_comment_block = True
@@ -354,8 +354,9 @@ class Sh2s(object):
                                 re.match(r'^\s*[^/{2}].*?', line):
                             # print(line)
                             updated_source_lines.append(line)
-                    # print(inside_comment_block)
+                            # print(inside_comment_block)
                 maintain_func_scope(line)
+
             # insert the comments for each function
             if not is_in_function and function_lines:
 
@@ -365,10 +366,8 @@ class Sh2s(object):
 
                 updated_source_lines += ['\n'] + comments.get(func_names[-1], []) + function_lines
                 function_lines.clear()
-                # print(function)
 
-        # print(func_names, '*' * 100)
-        print()
+        # check whether all the functions are in header file
         for func in func_names:
             if func not in comments:
                 print(func, ' not fund')
@@ -404,29 +403,149 @@ class Sh2s(object):
 
         return True
 
-    def run(self):
-        self.file_names = os.listdir('.')
-        # print(self.file_names)
+    def update_headers_for_each_code_file(self) -> None:
+        if not self.file_comments:
+            return
+        file_names = self.get_code_file_names()
+        for file_name in file_names:
+            self.update_headers_for_code_file(file_name, self.file_comments.copy())
 
-        file_names = [
-            file for file in self.file_names if
-            re.match(r'^[^.].*?\.(cpp|h)$', file)
-            ]
-        # print(file_names)
-        for file in self.file_names:
+    def update_headers_for_code_file(self, file_name, info: {str: str}) -> None:
+        """
+        The comment block must in the top the file.
+        Nothing before this block.
+        In addition, the comment must start with /*
 
-            if file.endswith(self.header_extension):
+        :param file_name:
+        :param info:
+        """
+        os.chdir(self.path)
 
-                source_file = self.header_to_source_name(file)
-                if source_file in file_names:
-                    # if both header file and source file are in this dir
-                    self.back_up_source_file(source_file)
-                    comments = self.read_header(file)
-                    self.write_source_file(source_file, comments)
+        with open(file_name, 'r') as file:
+            lines = file.readlines()
+        block = []
+        block_end = -1
+        for i, line in enumerate(lines):
+            # not in comment block and not starts with /* and not empty line
+            if not block:
+                if not re.search(r'^\s*/\*', line) and not line.strip() == '':
+                    # no file comment was found
+                    break
                 else:
-                    print(source_file, 'does not exist!')
+                    if line.strip() == '':
+                        continue
+                    else:
+                        block.append(line)
+            else:
+                block.append(line)
+                if re.search(r'\*/$', line):
+                    block_end = i + 1
+                    break
+        string_block = str(block)
+        extra_info_in_block = []
+        if block:
+            if not re.search(r'[@|\\](\w+)[\s|:]', string_block):
+                block = []
+                block_end = -1
+        if block:
+            for line in block:
+                groups = re.search(r'[@|\\](\w+)[\s|:](.*?)\s+', line)
+                if groups:
+                    k, v = groups.groups()
+                    if k not in info:
+                        info[k] = v
+                else:
+                    extra_info_in_block.append(line)
 
-        print('Success')
+        block = []
+        self.append_block_comment(block, '/**\n', False)
+        self.append_block_comment(block, '* @file {}\n'.format(file_name))
+        if 'file' in info:
+            del info['file']
+        for k in sorted(info.keys()):
+            self.append_block_comment(block, '* @{} {}\n'.format(k, info[k]))
+        for line in extra_info_in_block:
+            if re.search(r'(^\s*/\*)|(\*/$)', line):
+                continue
+            self.append_block_comment(block, line)
+        self.append_block_comment(block, '*/\n')
+
+        if block_end < 0:
+            lines = block + lines
+        else:
+            lines = block + lines[block_end:]
+
+        with open(file_name, 'w') as file:
+            file.writelines(lines)
+
+    def get_code_file_names(self) -> [str]:
+        if not self.file_names:
+            self.file_names = os.listdir('.')
+            self.file_names = [
+                file for file in self.file_names if
+                re.match(r'^[^.].*?\.(cpp|h)$', file)
+                ]
+        return self.file_names
+
+    def perform_args(self):
+        args = sys.argv
+        args_len = len(args)
+        if args_len > 1:
+            # has args to deal with
+            i = 1
+            while i < args_len:
+                if args[i] == '-extension':
+                    i += 1
+                    try:
+                        self.header_extension, self.source_extension = args[i].split('|')
+                    except IndexError:
+                        raise IndexError('No extension pairs found! i.e.: h|cpp')
+                    except ValueError:
+                        raise ValueError('Wrong extension pairs format! i.e.: h|cpp')
+                    except Exception as e:
+                        print("Unknown error!", e)
+                        raise Exception(e)
+                elif args[i] == '-fc' or args[i] == '-fc-only':
+                    i += 1
+                    try:
+                        comments = args[i].split('|')
+                        for comment in comments:
+                            k, self.file_comments[k] = comment.split(':')
+                        if args[i] == '-fc-only':
+                            self.only_update_file_comments = True
+                    except IndexError:
+                        raise IndexError('No file comments found! i.e.: author:Bill|date:2017.01.01')
+                    except ValueError:
+                        raise ValueError('Wrong file comments format! i.e.: author:Bill|date:2017.01.01')
+                    except Exception as e:
+                        print("Unknown error!", e)
+                        raise Exception(e)
+                else:
+                    raise SyntaxError('Wrong arguments! {}'.format(args[i]))
+
+                i += 1
+
+    def run(self):
+        self.perform_args()
+        file_names = self.get_code_file_names()
+        # print(file_names)
+        if not self.only_update_file_comments:
+            for file in self.file_names:
+
+                if file.endswith(self.header_extension):
+
+                    source_file = self.header_to_source_name(file)
+                    if source_file in file_names:
+                        # if both header file and source file are in this dir
+                        self.back_up_source_file(source_file)
+                        comments = self.read_header(file)
+                        self.write_source_file(source_file, comments)
+                    else:
+                        print(source_file, 'does not exist!')
+                        print('If you used any nested struct or class, '
+                              'please make sure you used :: all the time!')
+        self.update_headers_for_each_code_file()
+        print('Finished')
 
 
 if __name__ == '__main__':

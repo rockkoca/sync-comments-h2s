@@ -1,7 +1,9 @@
 from unittest import TestCase
 from sync_comment_h2s import *
 
-sh2s = Sh2s('/')
+my_path = "/".join(os.path.realpath(__file__).split('/')[:-1])
+os.chdir(my_path)
+sh2s = Sh2s(my_path)
 
 
 class TestSh2s(TestCase):
@@ -103,12 +105,10 @@ class TestSh2s(TestCase):
             self.assertFalse(re.match(match_function, test))
 
     def test_read_source_and_header(self):
-        my_path = "/".join(os.path.realpath(__file__).split('/')[:-1])
-        os.chdir(my_path)
         d = sh2s.read_header('test_sh2s.h')
         names = sh2s.write_source_file('test_sh2s.cpp', d)
-        for k, v in d.items():
-            print(k, v)
+        # for k, v in d.items():
+        #     print(k, v)
         for name in names:
             self.assertTrue(name in d)
 
@@ -116,3 +116,6 @@ class TestSh2s(TestCase):
         correct_output = open('test_sh2s_correct.cpp', 'r')
         for l1, l2 in zip(output, correct_output):
             self.assertEqual(l1, l2)
+
+    def test_update_headers_for_code_file(self):
+        sh2s.update_headers_for_code_file('test_sh2s.cpp', {'author': 'Koca'})
