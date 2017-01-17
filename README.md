@@ -1,9 +1,53 @@
 # sync-comments-h2s: Sync comments from header files to source code files
-
+### This program also can update file comments for a directory.
 ### This program can help people that wanted to sync all the method comments from .h to .cpp.
 ### I don't want to copy comments from .h to .cpp every time I changed something in the .h. 
 ### So, I wrote this program.
 
-## If you want to write different comments in source file, this program does not help at all.
+## If you want to write different comments in source file, this program does not help unless you only want to update file comments.
+
+
+
+#How to Use
+Download and unzip the files.
+cd sync-comments-h2s-master
+sudo ./sh2s
+
+If you do not see any error, you are done.
+
+###Now, go to the folder that contains your .h/.cpp files and run "sh2s".
+##Example
+sh2s
+OR
+sh2s -extension hh|cc
+OR
+sh2s -fc-only author|Bill
+
+
+#Options
+-extension hh|cc
+The default pair is h|cpp
+
+update file comments. This program will always attempt to add "@file filename.xxx"
+Use the following command to add extra comments
+
+-fc author:Bill|date:2017.01.01
+
+The following arguments will only update the file comments without modifing any other comments in any file.
+-fc-only author:Bill|date:2017.01.01
+
+###Example result
+    /**
+     * @file test_sh2s.cpp
+     * @author Bill
+     * @date 2017.01.01
+     */
+
+
+
+
+
+
+
 
 
