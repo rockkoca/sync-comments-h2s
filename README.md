@@ -50,7 +50,7 @@ The following arguments will only update the file comments without modifing any 
 
     -fc-only "author:Bill|date:2017.01.01"
 
-###Example result for update file comments
+###Example result for updated file comments
     /**
      * @file   test_sh2s.cpp
      * @author Bill
