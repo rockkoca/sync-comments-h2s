@@ -1,4 +1,4 @@
-# sync-comments-h2s: Sync comments from header files to source code files
+# Sync comments from header files to source code files and update or add file comments.
 ### This program also can update file comments for a directory.
 ### This program can help people that wanted to sync all the method comments from .h to .cpp.
 ### I don't want to copy comments from .h to .cpp every time I changed something in the .h. 
