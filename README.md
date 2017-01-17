@@ -34,16 +34,18 @@ OR  Update file comments only.
 
 
 #Options
--extension hh|cc
+
+    -extension hh|cc
 The default pair is h|cpp
 
 update file comments. This program will always attempt to add "@file filename.xxx"
 Use the following command to add extra comments
 
--fc author:Bill|date:2017.01.01
+    -fc author:Bill|date:2017.01.01
 
 The following arguments will only update the file comments without modifing any other comments in any file.
--fc-only author:Bill|date:2017.01.01
+
+    -fc-only author:Bill|date:2017.01.01
 
 ###Example result for update file comments
     /**
