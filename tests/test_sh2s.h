@@ -16,6 +16,7 @@
 
 #include "transaction.h"
 
+const int CONST_VALUE;
 
 class Test_sh2s {
 
