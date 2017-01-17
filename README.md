@@ -53,8 +53,8 @@ The following arguments will only update the file comments without modifing any 
      */
 
 #Limitation
-Does not support template yet.
-No much tests have been done for C.
+* Does not support template yet.
+* No much tests have been done for C.
 
 
 
