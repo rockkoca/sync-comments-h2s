@@ -52,9 +52,9 @@ The following arguments will only update the file comments without modifing any 
 
 ###Example result for update file comments
     /**
-     * @file test_sh2s.cpp
+     * @file   test_sh2s.cpp
      * @author Bill
-     * @date 2017.01.01
+     * @date   2017.01.01
      */
 
 #Limitation
