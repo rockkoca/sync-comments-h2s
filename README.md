@@ -4,7 +4,8 @@ I wrote this program to sync all the method comments from .h to .cpp because I d
 
 ### If you want to write different comments in source file, this program does not help unless you only want to update file comments.
 
-
+#Requirements
+* Python 3 is required. No planning to support Py2.
 
 #How to Use
 Download and unzip the files.
