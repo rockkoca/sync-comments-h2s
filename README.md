@@ -16,6 +16,7 @@ Download and unzip the files.
 If you do not see any error, you are done.
 
 ###Now, go to the folder that contains your .h/.cpp files and run "sh2s".
+    All source files are backed up in ".sh2s_back_up" folder before perform any modification.
 ##Example
 
 Sync comments from .h to .cpp
