@@ -2,7 +2,7 @@
 ## This program also can update file comments for a directory.
 I wrote this program to sync all the method comments from .h to .cpp because I don't want to copy comments from .h to .cpp every time I changed something in the .h. 
 
-### If you want to write different comments in source file, this program does not help unless you only want to update file comments.
+### If you want to write different comments in source file, this program still can help you copy the structure of the comments to source file and update file comments if needed.
 
 #Requirements
 * Python 3 is required. No planning to support Py2.
