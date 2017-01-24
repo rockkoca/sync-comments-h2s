@@ -1,7 +1,7 @@
 /**
- * @file test_sh2s.cpp
- * @author Koca
- * @version 1.0
+ * @file     test_sh2s.cpp
+ * @author   Koca
+ * @version  1.0
  *
  * This is a test file.
  *

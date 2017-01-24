@@ -76,6 +76,10 @@ class Sh2s(object):
             # replace all the double space with one
             temp_line = self.replace_double_space(temp_line)
             if temp_line.startswith('class') or temp_line.startswith('struct'):
+
+                # skip the class forward declaration
+                if temp_line.endswith(';'):
+                    continue
                 inside_block_comment = False
                 class_levels.append(self.extract_class_name(line)[-1])
                 # print('is class', line, comment)
@@ -449,21 +453,25 @@ class Sh2s(object):
                 block_end = -1
         if block:
             for line in block:
-                groups = re.search(r'[@|\\](\w+)[\s|:](.*?)\s+', line)
+                groups = re.search(r'[@|\\](\w+)[\s*:?\s*](.*)', line.rstrip())
                 if groups:
+                    # print(groups.groups())
                     k, v = groups.groups()
+                    # print(k, v)
                     if k not in info:
-                        info[k] = v
+                        info[k] = v.strip()
                 else:
                     extra_info_in_block.append(line)
 
         block = []
         self.append_block_comment(block, '/**\n', False)
-        self.append_block_comment(block, '* @file {}\n'.format(file_name))
         if 'file' in info:
             del info['file']
+        max_len_key = max(len(k) for k in info.keys()) + 1
+
+        self.append_block_comment(block, '* @{:<{}} {}\n'.format("file", max_len_key, file_name))
         for k in sorted(info.keys()):
-            self.append_block_comment(block, '* @{} {}\n'.format(k, info[k]))
+            self.append_block_comment(block, '* @{:<{}} {}\n'.format(k, max_len_key, info[k]))
         for line in extra_info_in_block:
             if re.search(r'(^\s*/\*)|(\*/$)', line):
                 continue
