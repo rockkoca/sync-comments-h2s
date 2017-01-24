@@ -281,8 +281,9 @@ class Sh2s(object):
 
     @staticmethod
     def replace_double_space(line: str) -> str:
-        # while "  " in line:
-        #     line = line.replace("  ", ' ')
+
+        # replace \t with four space
+        line = re.sub(r'\t', '    ', line)
         return re.sub(r'\s+', ' ', line)
 
     def write_source_file(self, file_name: str, comments: {str: [str]}) -> [str]:
