@@ -32,10 +32,18 @@ class TestSh2s(TestCase):
         test = 'WordTree &WordTree::operator     =     (const WordTree         &      right)'
         self.assertEqual(result, Sh2s.unify_function_name(test))
 
+        result = 'WordTree &WordTree::operator=(const WordTree)'
+        test = 'WordTree &WordTree::operator     =     (const WordTree            right)'
+        self.assertEqual(result, Sh2s.unify_function_name(test))
+
+        result = 'Movie::Movie(const string)'
+        test = 'Movie::Movie(const string "sdf")'
+        self.assertEqual(result, Sh2s.unify_function_name(test))
+
         test1 = 'WordNode(const string word, WordTree::WordNode *left,' \
                 'WordTree::WordNode *right, const int count) {'
         test2 = 'WordNode(const string word, WordTree::WordNode *left = nullptr,' \
-                'WordTree::WordNode *right = nullptr, const int count = 1)'
+                'WordTree::WordNode *right = nullptr, const int count = "ok")'
         self.assertEqual(Sh2s.unify_function_name(test1),
                          Sh2s.unify_function_name(test2))
 
@@ -54,6 +62,10 @@ class TestSh2s(TestCase):
 
         result = 'int getHelper(const string **, const WordNode *&) const'
         test = 'int getHelper  (    const string*      *, const WordNode*         &   )    const'
+        self.assertEqual(result, Sh2s.format_asterisk_ampersand_comma_parentheses(test))
+
+        result = 'int getHelper(const string **str, const WordNode *&) const'
+        test = 'int getHelper  (    const string*      *  str, const WordNode*         &   )    const'
         self.assertEqual(result, Sh2s.format_asterisk_ampersand_comma_parentheses(test))
 
     def test_extract_class_name(self):
