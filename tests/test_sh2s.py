@@ -37,7 +37,7 @@ class TestSh2s(TestCase):
         self.assertEqual(result, Sh2s.unify_function_name(test))
 
         result = 'Movie::Movie(const string)'
-        test = 'Movie::Movie(const string)'
+        test = 'Movie::Movie(const string "sdf")'
         self.assertEqual(result, Sh2s.unify_function_name(test))
 
         test1 = 'WordNode(const string word, WordTree::WordNode *left,' \

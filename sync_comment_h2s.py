@@ -231,7 +231,7 @@ class Sh2s(object):
 
             # remove variables
             remove_var = re.compile(r"""
-                        (?P<name>
+                        (?P<g1>
                             (const    # starts with constant
                             \s+
                             )?        # some space after const
@@ -242,7 +242,7 @@ class Sh2s(object):
                         """, re.VERBOSE)
 
             # TODO  this statement does not work!!!!!
-            # remove_var.sub(r'\g<name>', p2)
+            # remove_var.sub(r'\g<g1>', p2)
             try:
                 p2 = remove_var.search(p2).group()
             except Exception:
