@@ -163,6 +163,7 @@ class Sh2s(object):
                 else:
                     continue
                     # print(line, '##################no match')
+        print(comments)
         return comments
 
     def append_block_comment(self, comment: [str], line: str, body: bool = True) -> None:
@@ -228,9 +229,25 @@ class Sh2s(object):
         for i, p2 in enumerate(part2s):
             p2 = p2.strip()
 
-            # print(p2, part2s, line)
-            while p2[-1].isalnum() or p2[-1] == '_':
-                p2 = p2[:-1]
+            # remove variables
+            remove_var = re.compile(r"""
+                        (?P<name>
+                            (const    # starts with constant
+                            \s+
+                            )?        # some space after const
+                            \w+[0-9a-zA-Z]*(::\w+[0-9a-zA-Z]*)*  # Class11a or Class::class::class
+                            (\s*(\*\s*)*\s*&*)?     # space and * or ** or *& after that or nothing
+                        )
+
+                        """, re.VERBOSE)
+
+            # TODO  this statement does not work!!!!!
+            # remove_var.sub(r'\g<name>', p2)
+            try:
+                p2 = remove_var.search(p2).group()
+            except Exception:
+                pass
+
             if '=' in p2:
                 p2 = re.sub(r'\s*\w+_?\w*\s*=\s*.+$', '', p2)
 
@@ -400,7 +417,7 @@ class Sh2s(object):
                 print(e)
                 raise Exception('Unknown error! Cannot create backup folder.')
         try:
-            check_output('cp {} {}/{}'
+            check_output('cp "{}" "{}/{}"'
                          .format(file_name, back_up_folder, file_name + '.bak'), shell=True)
         except Exception as e:
             print(e)
@@ -559,5 +576,6 @@ class Sh2s(object):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    sh2s = Sh2s(path=os.getcwd())
+    # sh2s = Sh2s(path=os.getcwd())
+    sh2s = Sh2s(path='/home/k/Documents')
     sh2s.run()
