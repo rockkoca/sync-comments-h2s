@@ -576,6 +576,5 @@ class Sh2s(object):
 
 if __name__ == '__main__':
     # print(sys.argv)
-    # sh2s = Sh2s(path=os.getcwd())
-    sh2s = Sh2s(path='/home/k/Documents')
+    sh2s = Sh2s(path=os.getcwd())
     sh2s.run()
