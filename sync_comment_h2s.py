@@ -44,6 +44,7 @@ class Sh2s(object):
             and comments as the value
         :param file_name: the file name of a header file
         """
+        # TODO optimize the reading. multi-line function does not work now.
         comments = {}
         comment = []  # hold single comment block
         comments[self._source_name] = file_name + self.source_extension
@@ -161,9 +162,11 @@ class Sh2s(object):
                     # comment.append(' ' + line.lstrip())
                     self.append_block_comment(comment, line)
                 else:
+                    comment.clear() # testing
                     continue
+
                     # print(line, '##################no match')
-        print(comments)
+        # print(comments)
         return comments
 
     def append_block_comment(self, comment: [str], line: str, body: bool = True) -> None:
@@ -327,7 +330,16 @@ class Sh2s(object):
             Maintain func scope by counting the number of { and }
             :param string: a line of code
             """
+            in_string = ""
             for s in string:
+                if not in_string:
+                    if s == '"' or s == "'":
+                        in_string = s
+                        continue
+                else:
+                    if s == in_string:
+                        in_string = ''
+                    continue
                 if '{' == s:
                     is_in_function.append('{')
                 elif '}' == s:
@@ -378,7 +390,7 @@ class Sh2s(object):
                             updated_source_lines.append(line)
                             # print(inside_comment_block)
                 maintain_func_scope(line)
-
+            # print(is_in_function, function_lines)
             # insert the comments for each function
             if not is_in_function and function_lines:
 
@@ -393,7 +405,8 @@ class Sh2s(object):
         for func in func_names:
             if func not in comments:
                 print(func, ' not fund')
-
+        # for line in updated_source_lines:
+        #     print(line)
         with open(file_name, 'w') as file:
             file.writelines(updated_source_lines)
 
