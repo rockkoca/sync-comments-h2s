@@ -71,6 +71,11 @@ public:
                     int *&arg5, Test_sh2s::Node *left);
 
    /**
+    * readDatabase
+    * @param infile : a database file with the format that described in @pre
+    */
+   void readDatabase(ifstream &infile);
+   /**
     * doSomething3
     * @return
     */
@@ -81,6 +86,8 @@ public:
     * @return
     */
    Test_sh2s::Node &doSomething4();
+
+
 
 private:
    struct Node {
@@ -107,5 +114,6 @@ private:
  * Test c function
  */
 void test_c_func(int test);
+
 
 #endif //TEST_SH2S_H

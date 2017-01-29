@@ -99,7 +99,8 @@ class TestSh2s(TestCase):
             '   Test();',
             'void Transaction::print(const int client_id) const {',
             'WordTree::WordNode::WordNode(const string word, WordTree::WordNode *left,',
-            'void WordTree::outputHelper(ostream &output, const WordNode *curr) const {'
+            'void WordTree::outputHelper(ostream &output, const WordNode *curr) const {',
+            'void KevinBaconGame::readDatabase(ifstream &infile) {'
         ]
 
         for test in testes:
@@ -128,6 +129,9 @@ class TestSh2s(TestCase):
         correct_output = open('test_sh2s_correct.cpp', 'r')
         for l1, l2 in zip(output, correct_output):
             self.assertEqual(l1, l2)
+
+        names = sh2s.write_source_file('/home/k/Desktop/KevinBaconGame.cpp', {})
+        print(names)
 
     def test_update_headers_for_code_file(self):
         sh2s.update_headers_for_code_file('test_sh2s.cpp', {'author': 'Koca'})

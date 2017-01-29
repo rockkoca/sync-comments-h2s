@@ -109,3 +109,11 @@ Test_sh2s::Node::Node(int val, Test_sh2s::Node *left, Test_sh2s::Node *right) {
 void test_c_func(int test){
 
 }
+
+/**
+ * readDatabase
+ * @param infile : a database file with the format that described in @pre
+ */
+void Test_sh2s::readDatabase(ifstream &infile) {
+    int a = 5;
+}
