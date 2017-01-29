@@ -114,6 +114,10 @@ class Sh2s(object):
                     continue
                 # friend functions
                 elif re.search(match_friend, line):
+                    while ')' not in line:
+                        line = line[:-1] + lines[i].lstrip()
+                        i += 1
+                    assert (')' in line)
                     name = self.extract_function_name(line)
                     # print(name , 'in frient')
                     comments[name] = comment.copy()
