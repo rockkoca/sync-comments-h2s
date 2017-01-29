@@ -45,6 +45,7 @@ class Sh2s(object):
         :param file_name: the file name of a header file
         """
         # TODO optimize the reading. multi-line function does not work now.
+        # TODO  !!!!!!!!!!!!!!!!!!!!!! file comments bug
         comments = {}
         comment = []  # hold single comment block
         comments[self._source_name] = file_name + self.source_extension
@@ -119,7 +120,7 @@ class Sh2s(object):
                     comment.clear()
                 elif temp_line == '\n':
                     comment.append(line)
-                elif re.match(match_function, line):
+                elif self.match_fun_name(line) == 1:
                     """if this line is the function"""
 
                     '''if ) not in this line, loop until find it'''
@@ -162,12 +163,34 @@ class Sh2s(object):
                     # comment.append(' ' + line.lstrip())
                     self.append_block_comment(comment, line)
                 else:
-                    comment.clear() # testing
+                    # print(class_levels, comment)
+                    if class_levels:
+                        comment.clear()  # testing
                     continue
 
                     # print(line, '##################no match')
         # print(comments)
         return comments
+
+    def match_fun_name(self, line: str) -> int:
+        """
+
+        :param line: one line of code
+        :return:    0 => not function name;
+                    1 => function name;
+                   -1 => not sure. or keep going
+        """
+        match_function = self._match_function
+
+        # =(?!=) does not work for ==
+        no_equal_out_parentheses = re.compile(r'.*?(?<!operator)\s*=(?!=).*?\(', re.MULTILINE)
+        a_operator_overloading = re.compile(r'.*?operator\s*(={1,2})', re.MULTILINE)
+        if re.search(match_function, line):
+            if re.search(no_equal_out_parentheses, line) \
+                    and not re.search(a_operator_overloading, line):
+                return 0
+            else:
+                return 1
 
     def append_block_comment(self, comment: [str], line: str, body: bool = True) -> None:
         indent = ' ' * self.comment_indent
@@ -273,7 +296,6 @@ class Sh2s(object):
         :param line: a function line
         :return: formatted function
         """
-        # todo use regex could be more efficient
         # no more than one space between anything
         line = re.sub(r'(\w+)\s*(\*|&)', r'\1 \2', line)
 
@@ -317,7 +339,6 @@ class Sh2s(object):
         is_in_function = []
         # comments = self.read_header('/home/k/Dropbox/Clion/CSS343/AS1-BST/WordTree')
 
-        # todo debug only
         # print(comments)
         lines = []
         with open(file_name, 'r') as file:
@@ -355,7 +376,7 @@ class Sh2s(object):
             i += 1
 
             # match function name line
-            if re.search(self._match_function, line):
+            if self.match_fun_name(line) == 1:
 
                 function_lines.append(line)
                 if not is_in_function:

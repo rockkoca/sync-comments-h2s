@@ -100,22 +100,24 @@ class TestSh2s(TestCase):
             'void Transaction::print(const int client_id) const {',
             'WordTree::WordNode::WordNode(const string word, WordTree::WordNode *left,',
             'void WordTree::outputHelper(ostream &output, const WordNode *curr) const {',
-            'void KevinBaconGame::readDatabase(ifstream &infile) {'
+            'void Kevin::read(ifstream &infile) {'
         ]
 
         for test in testes:
-            # print(test)
-            self.assertTrue(re.match(match_function, test))
+            print(test)
+            self.assertTrue(sh2s.match_fun_name(test))
         tests = [
             'private:',
             'struct WordNode {',
             '* assign the given wordTree to curr tree',
             'extern const int ACCOUNT_ID_MAX;    // THE MAX of account number',
-            'class Client {'
+            'class Client {',
+            'const string KB = "Kevin(I)"'
         ]
 
         for test in tests:
-            self.assertFalse(re.match(match_function, test))
+            print(test)
+            self.assertFalse(sh2s.match_fun_name(test))
 
     def test_read_source_and_header(self):
         d = sh2s.read_header('test_sh2s.h')
