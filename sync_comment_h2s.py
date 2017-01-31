@@ -200,8 +200,8 @@ class Sh2s(object):
             and comments as the value
         :param file_name: the file name of a header file
         """
-        # TODO optimize the reading. multi-line function does not work now.
-        # TODO  !!!!!!!!!!!!!!!!!!!!!! file comments bug
+        # TODO optimize the reading. multi-line function does not work well
+        # TODO if the line break is before (
         comments = {}
         comment = []  # hold single comment block
         comments[self._source_name] = file_name + self.source_extension
