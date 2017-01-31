@@ -358,6 +358,7 @@ class Sh2s(object):
             :param string: a line of code
             """
             in_string = ""
+            in_parentheses = []
             for s in string:
                 if not in_string:
                     if s == '"' or s == "'":
@@ -367,6 +368,16 @@ class Sh2s(object):
                     if s == in_string:
                         in_string = ''
                     continue
+
+                if not in_parentheses:
+                    if s == '(':
+                        in_parentheses.append(s)
+                        continue
+                else:
+                    if s == ')':
+                        in_parentheses.pop()
+                    continue
+
                 if '{' == s:
                     is_in_function.append('{')
                 elif '}' == s:
