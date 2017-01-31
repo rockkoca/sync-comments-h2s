@@ -7,14 +7,15 @@ import collections
 from subprocess import *
 
 '''
-This program assumes the code is well formatted by IDE
+This program assumes the code is well formatted by IDE although
+it tries to format the code as much as possible.
 
 Read comments from .h file and insert them into the .cpp file.
 Always update the comments from .h to .cpp file. The old
 comments in .cpp file will be deleted.
 
-Generate the file header in a block file comment.
-    (including author, version, etc)
+Generate the file header in a block file comment based on users
+input such as author, file, etc.
 '''
 
 
@@ -45,6 +46,7 @@ class Sh2s(object):
                     1 => function name;
                    -1 => not sure. or keep going
         """
+        # TODO work on the -1 part.
         match_function = self._match_function
 
         # =(?!=) does not work for ==
@@ -200,8 +202,8 @@ class Sh2s(object):
             and comments as the value
         :param file_name: the file name of a header file
         """
-        # TODO optimize the reading. multi-line function does not work now.
-        # TODO  !!!!!!!!!!!!!!!!!!!!!! file comments bug
+        # TODO optimize the reading. multi-line function does not work well
+        # TODO if the line break is before (
         comments = {}
         comment = []  # hold single comment block
         comments[self._source_name] = file_name + self.source_extension
