@@ -37,141 +37,6 @@ class Sh2s(object):
         self.file_comments = {}
         self.only_update_file_comments = False
 
-    def read_header(self, file_name: str) -> {str: [str]}:
-        """
-        read comments from header file.
-            The comments will be put in a dictionary with func name as the key
-            and comments as the value
-        :param file_name: the file name of a header file
-        """
-        # TODO optimize the reading. multi-line function does not work now.
-        # TODO  !!!!!!!!!!!!!!!!!!!!!! file comments bug
-        comments = {}
-        comment = []  # hold single comment block
-        comments[self._source_name] = file_name + self.source_extension
-        file_name += self.header_extension \
-            if not file_name.endswith(self.header_extension) else ''
-        class_levels = collections.deque([])
-        lines = []
-        inside_block_comment = False
-
-        # starts with space or tab or letters, optional two ::
-        # some letters and anything until (
-        # ) could be in next line
-        match_function = self._match_function
-
-        match_friend = re.compile(r'^\s*\t*friend')
-
-        # hold all the comments
-        # key is the full method name including the class name
-        # value is the comment block
-
-        with open(file_name) as file:
-            lines = file.readlines()
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-            i += 1
-            # print(comment, line)
-
-            temp_line = line.strip().lower()
-            # replace all the double space with one
-            temp_line = self.replace_double_space(temp_line)
-            if temp_line.startswith('class') or temp_line.startswith('struct'):
-
-                # skip the class forward declaration
-                if temp_line.endswith(';'):
-                    continue
-                inside_block_comment = False
-                class_levels.append(self.extract_class_name(line)[-1])
-                # print('is class', line, comment)
-
-                # if meet a class or sturct and the file_comment is empty
-                # add the current comment to the file comment
-                # if already has file comment, probably the comment is for a class
-                # todo skip for now
-                if self._file_comment_key not in comments:
-                    comments[self._file_comment_key] = comment.copy()
-                # print(comments, 'in class')
-                comment.clear()
-            elif temp_line.startswith('/*'):
-                inside_block_comment = True
-                # comment.append(line.lstrip())
-                self.append_block_comment(comment, line, body=False)
-            elif temp_line.endswith('*/'):
-                inside_block_comment = False
-                # comment.append(' ' + line.lstrip())
-                self.append_block_comment(comment, line)
-            elif temp_line.startswith('//'):
-                # line comment??
-                # TODO thinking about this case
-                # print(line)
-                # comment.append(line.lstrip())
-                self.append_block_comment(comment, line)
-            else:
-                # skip include and define etc
-                if temp_line.startswith('#'):
-                    continue
-                # friend functions
-                elif re.search(match_friend, line):
-                    name = self.extract_function_name(line)
-                    # print(name , 'in frient')
-                    comments[name] = comment.copy()
-                    comment.clear()
-                elif temp_line == '\n':
-                    comment.append(line)
-                elif self.match_fun_name(line) == 1:
-                    """if this line is the function"""
-
-                    '''if ) not in this line, loop until find it'''
-                    while ')' not in line:
-                        line = line[:-1] + lines[i].lstrip()
-                        i += 1
-                    assert (')' in line)
-                    name = self.extract_function_name(line)
-
-                    # constructor and function are different
-                    match_constructor = re.compile(r'^\s*\t*~?\w+\s*\(')
-                    re_type = ''
-                    starts = ''
-                    if not re.search(match_constructor, name):
-                        temp = name.split(' ')
-                        re_type = temp[0]
-                        name = ' '.join(temp[1:])
-                        if re.search(r'(^(\*|&))\w+', name):
-                            # print(name)
-                            starts = name[0]
-                            name = name[1:]
-
-                    # build the full function name with class name
-                    class_levels.append(name)
-                    name = '::'.join(class_levels)
-                    class_levels.pop()
-                    if starts:
-                        name = starts + name
-                    if re_type:
-                        name = re_type + ' ' + name
-
-                    # print(name, '###################in function')
-                    comments[name] = comment.copy()
-                    comment.clear()
-                elif re.search('}\s*;', line):
-                    '''end of the class'''
-                    class_levels.pop()
-                elif inside_block_comment:
-                    # comment.append(line)
-                    # comment.append(' ' + line.lstrip())
-                    self.append_block_comment(comment, line)
-                else:
-                    # print(class_levels, comment)
-                    if class_levels:
-                        comment.clear()  # testing
-                    continue
-
-                    # print(line, '##################no match')
-        # print(comments)
-        return comments
-
     def match_fun_name(self, line: str) -> int:
         """
 
@@ -327,6 +192,145 @@ class Sh2s(object):
         # replace \t with four space
         line = re.sub(r'\t', '    ', line)
         return re.sub(r'\s+', ' ', line)
+
+    def read_header(self, file_name: str) -> {str: [str]}:
+        """
+        read comments from header file.
+            The comments will be put in a dictionary with func name as the key
+            and comments as the value
+        :param file_name: the file name of a header file
+        """
+        # TODO optimize the reading. multi-line function does not work now.
+        # TODO  !!!!!!!!!!!!!!!!!!!!!! file comments bug
+        comments = {}
+        comment = []  # hold single comment block
+        comments[self._source_name] = file_name + self.source_extension
+        file_name += self.header_extension \
+            if not file_name.endswith(self.header_extension) else ''
+        class_levels = collections.deque([])
+        lines = []
+        inside_block_comment = False
+
+        # starts with space or tab or letters, optional two ::
+        # some letters and anything until (
+        # ) could be in next line
+        match_function = self._match_function
+
+        match_friend = re.compile(r'^\s*\t*friend')
+
+        # hold all the comments
+        # key is the full method name including the class name
+        # value is the comment block
+
+        with open(file_name) as file:
+            lines = file.readlines()
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            i += 1
+            # print(comment, line)
+
+            temp_line = line.strip().lower()
+            # replace all the double space with one
+            temp_line = self.replace_double_space(temp_line)
+            if temp_line.startswith('class') or temp_line.startswith('struct'):
+
+                # skip the class forward declaration
+                if temp_line.endswith(';'):
+                    continue
+                inside_block_comment = False
+                class_levels.append(self.extract_class_name(line)[-1])
+                # print('is class', line, comment)
+
+                # if meet a class or sturct and the file_comment is empty
+                # add the current comment to the file comment
+                # if already has file comment, probably the comment is for a class
+                # todo skip for now
+                if self._file_comment_key not in comments:
+                    comments[self._file_comment_key] = comment.copy()
+                # print(comments, 'in class')
+                comment.clear()
+            elif temp_line.startswith('/*'):
+                inside_block_comment = True
+                # comment.append(line.lstrip())
+                self.append_block_comment(comment, line, body=False)
+            elif temp_line.endswith('*/'):
+                inside_block_comment = False
+                # comment.append(' ' + line.lstrip())
+                self.append_block_comment(comment, line)
+            elif temp_line.startswith('//'):
+                # line comment??
+                # TODO thinking about this case
+                # print(line)
+                # comment.append(line.lstrip())
+                self.append_block_comment(comment, line)
+            else:
+                # skip include and define etc
+                if temp_line.startswith('#'):
+                    continue
+                # friend functions
+                elif re.search(match_friend, line):
+                    while ')' not in line:
+                        line = line[:-1] + lines[i].lstrip()
+                        i += 1
+                    assert (')' in line)
+                    name = self.extract_function_name(line)
+                    # print(name , 'in frient')
+                    comments[name] = comment.copy()
+                    comment.clear()
+                elif temp_line == '\n':
+                    comment.append(line)
+                elif self.match_fun_name(line) == 1:
+                    """if this line is the function"""
+
+                    '''if ) not in this line, loop until find it'''
+                    while ')' not in line:
+                        line = line[:-1] + lines[i].lstrip()
+                        i += 1
+                    assert (')' in line)
+                    name = self.extract_function_name(line)
+
+                    # constructor and function are different
+                    match_constructor = re.compile(r'^\s*\t*~?\w+\s*\(')
+                    re_type = ''
+                    starts = ''
+                    if not re.search(match_constructor, name):
+                        temp = name.split(' ')
+                        re_type = temp[0]
+                        name = ' '.join(temp[1:])
+                        if re.search(r'(^(\*|&))\w+', name):
+                            # print(name)
+                            starts = name[0]
+                            name = name[1:]
+
+                    # build the full function name with class name
+                    class_levels.append(name)
+                    name = '::'.join(class_levels)
+                    class_levels.pop()
+                    if starts:
+                        name = starts + name
+                    if re_type:
+                        name = re_type + ' ' + name
+
+                    # print(name, '###################in function')
+                    comments[name] = comment.copy()
+                    comment.clear()
+                elif re.search('}\s*;', line):
+                    '''end of the class'''
+                    class_levels.pop()
+                elif inside_block_comment:
+                    # comment.append(line)
+                    # comment.append(' ' + line.lstrip())
+                    self.append_block_comment(comment, line)
+                else:
+                    # print(class_levels, comment)
+                    if class_levels:
+                        comment.clear()  # testing
+                    continue
+
+                    # print(line, '##################no match')
+        # print(comments)
+        return comments
 
     def write_source_file(self, file_name: str, comments: {str: [str]}) -> [str]:
         """
