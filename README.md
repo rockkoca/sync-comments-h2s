@@ -6,6 +6,7 @@ I wrote this program to sync all the method comments from .h to .cpp because I d
 
 #Requirements
 * Python 3 is required. No planning to support Py2.
+* Linux/Unix is required. Mac is fine too of course. No planning for Windows.
 
 #How to Use
 Download and unzip the files.
