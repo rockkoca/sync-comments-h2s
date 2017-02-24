@@ -30,7 +30,7 @@ OR  Sync comments from .h to .cpp and update file comments.
     sh2s -fc author|Bill
 OR  Update file comments only.
 
-    sh2s -fc-only author|Bill
+    sh2s -fc-only author:Bill
 
 
 #Options
