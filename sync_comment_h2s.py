@@ -606,8 +606,8 @@ class Sh2s(object):
     def run(self):
         self.perform_args()
         file_names = self.get_code_file_names()
-        print(file_names)
-        print(self.only_update_file_comments)
+        # print(file_names)
+        # print(self.only_update_file_comments)
         if not self.only_update_file_comments:
             for file in self.file_names:
 
