@@ -37,6 +37,7 @@ class Sh2s(object):
         self.comment_indent = comment_indent
         self.file_comments = {}
         self.only_update_file_comments = False
+        self.verbose = False
 
     def match_fun_name(self, line: str) -> int:
         """
@@ -102,6 +103,12 @@ class Sh2s(object):
 
         const = False
         line = Sh2s.replace_double_space(line)
+
+        # remove the end override or overload
+        match_override = re.compile(r'(override)|(overload)\s*;?$')
+        if re.search(match_override, line):
+            line = re.sub(r'(override)|(overload)\s*;?$', '', line.strip())
+            line = line.rstrip()
 
         # remove the end const
         match_const = re.compile(r'const\s*;?$')
@@ -299,7 +306,13 @@ class Sh2s(object):
                     if not re.search(match_constructor, name):
                         temp = name.split(' ')
                         re_type = temp[0]
-                        name = ' '.join(temp[1:])
+                        temp_i = 1
+                        if re_type == 'const':
+                            re_type += " " + temp[i]
+                            temp_i += 1
+
+                        name = ' '.join(temp[temp_i:])
+
                         if re.search(r'(^(\*|&))\w+', name):
                             # print(name)
                             starts = name[0]
@@ -307,6 +320,10 @@ class Sh2s(object):
 
                     # build the full function name with class name
                     class_levels.append(name)
+                    if self.verbose:
+                        print('class_levels for {}'.format(file_name))
+                        for level in class_levels:
+                            print("    ", level)
                     name = '::'.join(class_levels)
                     class_levels.pop()
                     if starts:
@@ -381,8 +398,9 @@ class Sh2s(object):
                 if '{' == s:
                     is_in_function.append('{')
                 elif '}' == s:
-                    is_in_function.pop()
-                    # print('after', is_in_function)
+                    if is_in_function:
+                        is_in_function.pop()
+                        # print('after', is_in_function)
 
         updated_source_lines = comments.get(self._file_comment_key, [])
         function_lines = []
@@ -442,7 +460,15 @@ class Sh2s(object):
         # check whether all the functions are in header file
         for func in func_names:
             if func not in comments:
-                print(func, ' not fund')
+                print("'{}'".format(func), ' not fund')
+        if self.verbose:
+            print("function names in source file {}:".format(file_name))
+            for name in func_names:
+                print('    ', name)
+            print("comments from header file: ")
+            for name in comments.keys():
+                print('    ', name)
+        print()
         # for line in updated_source_lines:
         #     print(line)
         with open(file_name, 'w') as file:
@@ -572,8 +598,8 @@ class Sh2s(object):
             i = 1
             while i < args_len:
                 arg = args[i]
+                i += 1
                 if arg == '-extension':
-                    i += 1
                     try:
                         self.header_extension, self.source_extension = args[i].split('|')
                     except IndexError:
@@ -584,7 +610,6 @@ class Sh2s(object):
                         print("Unknown error!", e)
                         raise Exception(e)
                 elif arg == '-fc' or arg == '-fc-only':
-                    i += 1
                     try:
                         comments = args[i].split('|')
                         for comment in comments:
@@ -598,9 +623,11 @@ class Sh2s(object):
                     except Exception as e:
                         print("Unknown error!", e)
                         raise Exception(e)
+                elif arg == '-verbose':
+                    self.verbose = True
+                    i -= 1
                 else:
                     raise SyntaxError('Wrong arguments! {}'.format(args[i]))
-
                 i += 1
 
     def run(self):
@@ -610,19 +637,22 @@ class Sh2s(object):
         # print(self.only_update_file_comments)
         if not self.only_update_file_comments:
             for file in self.file_names:
+                try:
+                    if file.endswith(self.header_extension):
 
-                if file.endswith(self.header_extension):
-
-                    source_file = self.header_to_source_name(file)
-                    if source_file in file_names:
-                        # if both header file and source file are in this dir
-                        self.back_up_source_file(source_file)
-                        comments = self.read_header(file)
-                        self.write_source_file(source_file, comments)
-                    else:
-                        print(source_file, 'does not exist!')
-                        print('If you used any nested struct or class, '
-                              'please make sure you used :: all the time!')
+                        source_file = self.header_to_source_name(file)
+                        if source_file in file_names:
+                            # if both header file and source file are in this dir
+                            self.back_up_source_file(source_file)
+                            comments = self.read_header(file)
+                            self.write_source_file(source_file, comments)
+                        else:
+                            print(source_file, 'does not exist!')
+                            print('If you used any nested struct or class, '
+                                  'please make sure you used :: all the time!')
+                            print()
+                except Exception as e:
+                    print(file, e)
         self.update_headers_for_each_code_file()
         print('Finished')
 
