@@ -571,7 +571,8 @@ class Sh2s(object):
             # has args to deal with
             i = 1
             while i < args_len:
-                if args[i] == '-extension':
+                arg = args[i]
+                if arg == '-extension':
                     i += 1
                     try:
                         self.header_extension, self.source_extension = args[i].split('|')
@@ -582,13 +583,13 @@ class Sh2s(object):
                     except Exception as e:
                         print("Unknown error!", e)
                         raise Exception(e)
-                elif args[i] == '-fc' or args[i] == '-fc-only':
+                elif arg == '-fc' or arg == '-fc-only':
                     i += 1
                     try:
                         comments = args[i].split('|')
                         for comment in comments:
                             k, self.file_comments[k] = comment.split(':')
-                        if args[i] == '-fc-only':
+                        if arg == '-fc-only':
                             self.only_update_file_comments = True
                     except IndexError:
                         raise IndexError('No file comments found! i.e.: author:Bill|date:2017.01.01')
@@ -605,7 +606,8 @@ class Sh2s(object):
     def run(self):
         self.perform_args()
         file_names = self.get_code_file_names()
-        # print(file_names)
+        print(file_names)
+        print(self.only_update_file_comments)
         if not self.only_update_file_comments:
             for file in self.file_names:
 
