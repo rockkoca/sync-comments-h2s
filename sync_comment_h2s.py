@@ -126,11 +126,7 @@ class Sh2s(object):
 
         # remove all the variable name
         part2s = parts[-1].split(',')
-        for i, p2 in enumerate(part2s):
-            p2 = p2.strip()
-
-            # remove variables
-            remove_var = re.compile(r"""
+        remove_var = re.compile(r"""
                         (?P<g1>
                             (const    # starts with constant
                             \s+
@@ -140,6 +136,11 @@ class Sh2s(object):
                         )
 
                         """, re.VERBOSE)
+        for i, p2 in enumerate(part2s):
+            p2 = p2.strip()
+
+            # remove variables
+            
 
             # TODO  this statement does not work!!!!!
             # remove_var.sub(r'\g<g1>', p2)
